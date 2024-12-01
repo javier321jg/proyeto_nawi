@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>NawiCrop IA - Diagnóstico de Enfermedades en Cultivos</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Diagnóstico agrícola en tiempo real" name="keywords">
+    <meta content="Sistema de IA para el diagnóstico de enfermedades en hojas de fresa y albaricoque" name="description">
+
+    <!-- Favicon -->
+<link href="{{ url_for('static', filename='img/favicon.ico') }}" rel="icon">
+
+<!-- Google Web Fonts -->
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@300;500;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+<!-- Libraries Stylesheet -->
+<link href="{{ url_for('static', filename='lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css') }}" rel="stylesheet">
+
+<!-- Customized Bootstrap Stylesheet -->
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+
+</head>
+
+<body>
+     <!-- Splash Screen -->
+     <div id="splash-screen">
+        <div class="splash-content">
+            <img src="{{ url_for('static', filename='images/nawicrop.png') }}" alt="Logo NawiCrop" class="splash-logo">
+            <p>Cargando recursos...</p>
+            <div class="loading-bar">
+                <span class="progress"></span>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Esperar a que todos los recursos (imágenes, CSS, etc.) estén cargados
+        window.addEventListener('load', function () {
+            const splashScreen = document.getElementById('splash-screen');
+            // Añadir un pequeño retraso para la transición (opcional)
+            setTimeout(() => {
+                splashScreen.style.opacity = '0'; // Transición suave
+                setTimeout(() => {
+                    splashScreen.style.display = 'none'; // Ocultar el splash screen
+                }, 500); // Duración de la transición
+            }, 1000); // Tiempo opcional para mostrar el splash screen después de cargar
+        });
+    </script>
+    
+    <!-- Header Start -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-3 bg-secondary d-none d-lg-block">
+            <a href="{{ url_for('page') }}" class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center">
+                <h4 class="m-0 display-4 text-primary text-uppercase">NawiCrop</h4>
+            </a>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="row bg-white border-bottom d-none d-lg-flex">
+                <div class="col-lg-7 text-left">
+                    <div class="h-100 d-inline-flex align-items-center py-2 px-3">
+                        <i class="fa fa-envelope text-primary mr-2"></i>
+                        <small>contacto@ñawicrop.com</small>
+                    </div>
+                    <div class="h-100 d-inline-flex align-items-center py-2 px-2">
+                        <i class="fa fa-phone-alt text-primary mr-2"></i>
+                        <small>+51 987 654 321</small>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-right">
+                    <div class="d-inline-flex align-items-center p-2">
+                        <a class="btn btn-sm btn-outline-primary btn-sm-square mr-2" href="#">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary btn-sm-square mr-2" href="#">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary btn-sm-square mr-2" href="#">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary btn-sm-square mr-2" href="#">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <nav class="navbar navbar-expand-lg bg-white navbar-light p-0">
+    <a href="page.html" class="navbar-brand d-block d-lg-none">
+        <h1 class="m-0 display-4 text-primary text-uppercase">NawiCrop</h1>
+    </a>
+    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+        <div class="navbar-nav mr-auto py-0">
+            <a href="#inicio" class="nav-item nav-link active">Inicio</a>
+            <a href="#sobre-nosotros" class="nav-item nav-link">Sobre Nosotros</a>
+            <a href="#servicios" class="nav-item nav-link">Servicios</a>
+            <a href="#equipo" class="nav-item nav-link">Equipo</a>
+            <a href="#contacto" class="nav-item nav-link">Contacto</a>
+            <a href="#suscripcion" class="nav-item nav-link">Suscripción</a>
+        </div>
+        <a href="{{ url_for('login') }}" class="btn btn-primary mr-3 d-none d-lg-block">Iniciar sesión</a>
+
+    </div>
+</nav>
+
+        </div>
+    </div>
+</div>
+<!-- Header End -->
+
+
+   <!-- Carousel Start -->
+<div id="inicio" class="container-fluid p-0 mb-5 pb-5">
+    <div id="header-carousel" class="carousel slide carousel-fade" data-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item position-relative active" style="height: 100vh; min-height: 400px;">
+                <img class="position-absolute w-100 h-100" src="{{ url_for('static', filename='img/carousel-1.jpg') }}" style="object-fit: cover;">
+
+                <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                    <div class="p-3" style="max-width: 900px;">
+                        <h4 class="text-white text-uppercase mb-4" style="letter-spacing: 3px;">Diagnóstico en Tiempo Real</h4>
+                        <h3 class="display-2 text-capitalize text-white mb-4">Mejora la Salud de Tus Cultivos</h3>
+                        <a class="btn btn-primary py-3 px-5 mt-2" href="#">Conoce Más</a>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item position-relative" style="height: 100vh; min-height: 400px;">
+                <img class="position-absolute w-100 h-100" src="{{ url_for('static', filename='img/carousel-2.jpg') }}" style="object-fit: cover;">
+
+                <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                    <div class="p-3" style="max-width: 900px;">
+                        <h4 class="text-white text-uppercase mb-4" style="letter-spacing: 3px;">IA al Servicio de la Agricultura</h4>
+                        <h3 class="display-2 text-capitalize text-white mb-4">Diagnósticos Precisos y Eficientes</h3>
+                        <a class="btn btn-primary py-3 px-5 mt-2" href="#">Solicitar Diagnóstico</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="carousel-control-prev" href="#header-carousel" data-slide="prev">
+            <div class="btn btn-lg btn-secondary btn-lg-square">
+                <span class="carousel-control-prev-icon"></span>
+            </div>
+        </a>
+        <a class="carousel-control-next" href="#header-carousel" data-slide="next">
+            <div class="btn btn-lg btn-secondary btn-lg-square">
+                <span class="carousel-control-next-icon"></span>
+            </div>
+        </a>
+    </div>
+</div>
+<!-- Carousel End -->
+
+
+    <!-- About Start -->
+<div id="sobre-nosotros" class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-5">
+                <img class="img-fluid rounded" src="{{ url_for('static', filename='img/about.jpg') }}" alt="Imagen sobre ÑawiCrop">
+
+            </div>
+            <div class="col-lg-7 mt-4 mt-lg-0">
+                <h2 class="position-relative text-center bg-white text-primary rounded p-3 mt-4 mb-4 d-none d-lg-block" style="width: 350px; margin-left: -205px;">Innovación en Agricultura</h2>
+                <h6 class="text-uppercase">Conoce Más Sobre Nosotros</h6>
+                <h1 class="mb-4">Tecnología al Servicio de la Agricultura</h1>
+                <p>
+                    En NawiCrop IA, estamos comprometidos con los agricultores al proporcionar herramientas de diagnóstico rápido y preciso para detectar enfermedades en cultivos de fresa y albaricoque. Nuestra plataforma basada en inteligencia artificial permite a los agricultores tomar decisiones informadas para proteger sus cosechas y maximizar la productividad.
+                </p>
+                <a href="about.html" class="btn btn-primary mt-2">Leer Más</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- About End -->
+
+
+   <!-- Services Start -->
+<div id="servicios" class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-3">
+                <h6 class="text-uppercase">Servicios</h6>
+                <h1 class="mb-4">¿Qué Ofrecemos?</h1>
+                <p>Proveemos soluciones avanzadas basadas en inteligencia artificial para detectar enfermedades en cultivos de fresa y albaricoque, ayudando a los agricultores a proteger sus cosechas.</p>
+                <a href="services.html" class="btn btn-primary mt-2">Ver Más Servicios</a>
+            </div>
+            <div class="col-lg-9 pt-5 pt-lg-0">
+                <div class="bg-primary rounded" style="height: 200px;"></div>
+                <div class="owl-carousel service-carousel position-relative" style="margin-top: -100px; padding: 0 30px;">
+                    <div class="d-flex flex-column align-items-center text-center bg-white rounded pt-4">
+                        <div class="icon-box bg-secondary text-primary mt-2 mb-4">
+                            <i class="fa fa-2x fa-seedling"></i>
+                        </div>
+                        <h5 class="mb-4 px-4">Detección de Enfermedades</h5>
+                        <p class="m-0">Identificación rápida y precisa de enfermedades en hojas de fresa y albaricoque.</p>
+                    </div>
+                    <div class="d-flex flex-column align-items-center text-center bg-white rounded pt-4">
+                        <div class="icon-box bg-secondary text-primary mt-2 mb-4">
+                            <i class="fa fa-2x fa-chart-line"></i>
+                        </div>
+                        <h5 class="mb-4 px-4">Análisis Detallado</h5>
+                        <p class="m-0">Informe detallado de las condiciones del cultivo y sugerencias para mejorar su salud.</p>
+                    </div>
+                    <div class="d-flex flex-column align-items-center text-center bg-white rounded pt-4">
+                        <div class="icon-box bg-secondary text-primary mt-2 mb-4">
+                            <i class="fa fa-2x fa-leaf"></i>
+                        </div>
+                        <h5 class="mb-4 px-4">Recomendaciones Agrícolas</h5>
+                        <p class="m-0">Sugerencias basadas en datos para prevenir y tratar enfermedades agrícolas.</p>
+                    </div>
+                    <div class="d-flex flex-column align-items-center text-center bg-white rounded pt-4">
+                        <div class="icon-box bg-secondary text-primary mt-2 mb-4">
+                            <i class="fa fa-2x fa-mobile-alt"></i>
+                        </div>
+                        <h5 class="mb-4 px-4">Plataforma Multicanal</h5>
+                        <p class="m-0">Acceso a diagnósticos desde web, móvil y WhatsApp en tiempo real.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Services End -->
+<!-- Appointment Start -->
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="bg-appointment rounded">
+            <div class="row h-100 align-items-center justify-content-center">
+                <div class="col-lg-6 py-5">
+                    <div class="rounded p-5 my-5" style="background: rgba(55, 55, 63, .7);">
+                        <h1 class="text-center text-white mb-4">Solicitar Diagnóstico</h1>
+                        <form>
+                            <div class="form-group">
+                                <input type="text" class="form-control border-0 p-4" placeholder="Nombre Completo" required="required" />
+                            </div>
+                            <div class="form-group">
+                                <input type="email" class="form-control border-0 p-4" placeholder="Correo Electrónico" required="required" />
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <div class="date" id="date" data-target-input="nearest">
+                                            <input type="text" class="form-control border-0 p-4 datetimepicker-input" placeholder="Seleccionar Fecha" data-target="#date" data-toggle="datetimepicker"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <div class="time" id="time" data-target-input="nearest">
+                                            <input type="text" class="form-control border-0 p-4 datetimepicker-input" placeholder="Seleccionar Hora" data-target="#time" data-toggle="datetimepicker"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <select class="custom-select border-0 px-4" style="height: 47px;">
+                                    <option selected>Seleccionar un Servicio</option>
+                                    <option value="1">Diagnóstico de Fresa</option>
+                                    <option value="2">Diagnóstico de Albaricoque</option>
+                                    <option value="3">Análisis Detallado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-block border-0 py-3" type="submit">Enviar Solicitud</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Appointment End -->
+<div id="suscripcion" class="container py-5">
+    <h1 class="text-center mb-4 title-container">¡ELIGE TU PLAN <span class="highlight">NawiCrop</span>!</h1>
+    <p class="text-center mb-5 subtitle">Suscríbete y obtén diagnósticos personalizados para tus cultivos.</p>
+    <div class="row justify-content-center">
+        <!-- Tarjeta 1 -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card subscription-card">
+                <div class="card-body text-center">
+                    <p class="subscription-type">Plan Básico</p>
+                    <h3 class="subscription-title">Fresa Inicial</h3>
+                    <p class="normal-price">Normal <span>S/ 12</span></p>
+                    <h2 class="price">S/ 10</h2>
+                    <p class="price-desc">Mensual</p>
+                    <p>Obtén diagnósticos básicos para tus cultivos de fresa. Ideal para pequeños agricultores.</p>
+                    <p class="payment-method">
+                        <img src="{{ url_for('static', filename='img/yape.png') }}" alt="Yape" class="yape-icon"> 
+                        Puedes pagar con Yape
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Tarjeta 2 -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card subscription-card">
+                <div class="card-body text-center">
+                    <p class="subscription-type">Plan Pro</p>
+                    <h3 class="subscription-title">Cultivo Pro</h3>
+                    <p class="normal-price">Normal <span>S/ 30</span></p>
+                    <h2 class="price">S/ 25</h2>
+                    <p class="price-desc">Trimestral</p>
+                    <p>Diagnósticos avanzados y recomendaciones detalladas para tus cultivos.</p>
+                    <p class="payment-method">
+                        <img src="{{ url_for('static', filename='img/yape.png') }}" alt="Yape" class="yape-icon"> 
+                        Puedes pagar con Yape
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Tarjeta 3 -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card subscription-card">
+                <div class="card-body text-center">
+                    <p class="subscription-type">Plan Avanzado</p>
+                    <h3 class="subscription-title">Finca Grande</h3>
+                    <p class="normal-price">Normal <span>S/ 50</span></p>
+                    <h2 class="price">S/ 45</h2>
+                    <p class="price-desc">Semestral</p>
+                    <p>Incluye diagnósticos completos y soporte técnico exclusivo para tus cultivos y empresa.</p>
+                    <p class="payment-method">
+                        <img src="{{ url_for('static', filename='img/yape.png') }}" alt="Yape" class="yape-icon"> 
+                        Puedes pagar con Yape
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Tarjeta 4 -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card subscription-card highlighted">
+                <div class="card-body text-center">
+                    <div class="recommended-tag">Recomendado por NawiCrop</div>
+                    <p class="subscription-type">Plan Premium</p>
+                    <h3 class="subscription-title">AgriTech Pro</h3>
+                    <p class="normal-price">Normal <span>S/ 100</span></p>
+                    <h2 class="price">S/ 80</h2>
+                    <p class="price-desc">Anual</p>
+                    <p>Diagnósticos ilimitados, soporte prioritario y análisis personalizados para tu finca.</p>
+                    <p class="payment-method">
+                        <img src="{{ url_for('static', filename='img/yape.png') }}" alt="Yape" class="yape-icon"> 
+                        Puedes pagar con Yape
+                    </p>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center">
+        <button class="btn btn-warning btn-lg">Suscríbete ahora</button>
+    </div>
+</div>
+
+
+
+<!-- Team Start -->
+<div id="equipo" class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="text-center pb-2">
+            <h6 class="text-uppercase">Nuestro Equipo</h6>
+            <h1 class="mb-4">Conoce a Nuestro Equipo</h1>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="bg-primary rounded" style="height: 200px;"></div>
+                <div class="owl-carousel team-carousel position-relative" style="margin-top: -97px; padding: 0 30px;">
+                    <!-- Miembro 1 -->
+                    <div class="team-item text-center bg-white rounded overflow-hidden pt-4">
+                        <h5 class="mb-2 px-4">Nelson Javier Gutiérrez</h5>
+                        <p class="mb-3 px-4">Full Stack Developer</p>
+                        <div class="team-img position-relative">
+                            <img class="img-fluid team-img-fixed" src="{{ url_for('static', filename='img/JSON.PNG') }}" alt="Nelson Javier Gutiérrez">
+
+                            <div class="team-social">
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Miembro 2 -->
+                    <div class="team-item text-center bg-white rounded overflow-hidden pt-4">
+                        <h5 class="mb-2 px-4">Samir Maldonado Ricci</h5>
+                        <p class="mb-3 px-4">Product Manager</p>
+                        <div class="team-img position-relative">
+                            <img class="img-fluid team-img-fixed" src="{{ url_for('static', filename='img/SAMU.PNG') }}" alt="Samir Maldonado Ricci">
+
+                            <div class="team-social">
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Miembro 3 -->
+                    <div class="team-item text-center bg-white rounded overflow-hidden pt-4">
+                        <h5 class="mb-2 px-4">Max Anderson Sulca Ortiz</h5>
+                        <p class="mb-3 px-4">Full Stack Developer</p>
+                        <div class="team-img position-relative">
+                            <img class="img-fluid team-img-fixed" src="{{ url_for('static', filename='img/MAX.PNG') }}" alt="Max Anderson Sulca Ortiz">
+
+                            <div class="team-social">
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Miembro 4 -->
+                    <div class="team-item text-center bg-white rounded overflow-hidden pt-4">
+                        <h5 class="mb-2 px-4">María Rojas Concha</h5>
+                        <p class="mb-3 px-4">Cloud Backend Developer</p>
+                        <div class="team-img position-relative">
+                            <img class="img-fluid team-img-fixed" src="{{ url_for('static', filename='img/MARIA.PNG') }}" alt="María Jesús Rojas Concha">
+
+                            <div class="team-social">
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Miembro 5 -->
+                    <div class="team-item text-center bg-white rounded overflow-hidden pt-4">
+                        <h5 class="mb-2 px-4">Jorge Luis Rodríguez Noriega</h5>
+                        <p class="mb-3 px-4">IT Enterprise Architect</p>
+                        <div class="team-img position-relative">
+                            <img class="img-fluid team-img-fixed" src="{{ url_for('static', filename='img/YORCH.PNG') }}"  alt="Jorge Luis Rodríguez Noriega">
+                            <div class="team-social">
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-outline-light btn-square mx-1" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Team End -->
+
+<style>
+/* Asegurar el tamaño uniforme de las imágenes */
+.team-img-fixed {
+    width: 150px;
+    height:  270px;
+    object-fit: cover;
+   
+    margin: auto;
+}
+</style>
+
+<!-- Footer Start -->
+<div id="contacto" class="container-fluid bg-secondary text-white pt-5 px-sm-3 px-md-5" style="margin-top: 90px;">
+    <div class="row mt-5">
+        <div class="col-lg-4">
+            <div class="d-flex justify-content-lg-center p-4" style="background: rgba(256, 256, 256, .05);">
+                <i class="fa fa-2x fa-map-marker-alt text-primary"></i>
+                <div class="ml-3">
+                    <h5 class="text-white">Oficina Principal</h5>
+                    <p class="m-0">Av. Principal 123, Lima, Perú</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="d-flex justify-content-lg-center p-4" style="background: rgba(256, 256, 256, .05);">
+                <i class="fa fa-2x fa-envelope-open text-primary"></i>
+                <div class="ml-3">
+                    <h5 class="text-white">Escríbenos</h5>
+                    <p class="m-0">contacto@ñawicrop.com</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="d-flex justify-content-lg-center p-4" style="background: rgba(256, 256, 256, .05);">
+                <i class="fa fa-2x fa-phone-alt text-primary"></i>
+                <div class="ml-3">
+                    <h5 class="text-white">Llámanos</h5>
+                    <p class="m-0">+51 987 654 321</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-5">
+        <div class="col-lg-3 col-md-6 mb-5">
+            <a href="page.html" class="navbar-brand">
+                <h1 class="m-0 mt-n2 display-4 text-primary text-uppercase">NawiCrop</h1>
+            </a>
+            <p>NawiCrop se especializa en el diagnóstico de enfermedades en cultivos mediante inteligencia artificial para agricultores rurales.</p>
+            <div class="d-flex justify-content-start mt-4">
+                <a class="btn btn-lg btn-outline-light btn-lg-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                <a class="btn btn-lg btn-outline-light btn-lg-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                <a class="btn btn-lg btn-outline-light btn-lg-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a class="btn btn-lg btn-outline-light btn-lg-square" href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-5">
+            <h4 class="font-weight-semi-bold text-primary mb-4">Enlaces Útiles</h4>
+            <div class="d-flex flex-column justify-content-start">
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Inicio</a>
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Sobre Nosotros</a>
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Servicios</a>
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Contacto</a>
+                <a class="text-white" href="#"><i class="fa fa-angle-right mr-2"></i>Soporte</a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-5">
+            <h4 class="font-weight-semi-bold text-primary mb-4">Soporte Rápido</h4>
+            <div class="d-flex flex-column justify-content-start">
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Preguntas Frecuentes</a>
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Guía de Uso</a>
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Política de Privacidad</a>
+                <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Términos de Uso</a>
+                <a class="text-white" href="#"><i class="fa fa-angle-right mr-2"></i>Contáctanos</a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-5">
+            <h4 class="font-weight-semi-bold text-primary mb-4">Suscríbete</h4>
+            <p>Recibe las últimas actualizaciones y noticias sobre tecnología aplicada a la agricultura.</p>
+            <div class="w-100">
+                <div class="input-group">
+                    <input type="text" class="form-control border-0" style="padding: 25px;" placeholder="Tu correo">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary px-4">Suscribirse</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row p-4 mt-5 mx-0" style="background: rgba(256, 256, 256, .05);">
+        <div class="col-md-6 text-center text-md-left mb-3 mb-md-0">
+            <p class="m-0 text-white">&copy; <a class="font-weight-bold" href="#">NawiCrop</a>. Todos los derechos reservados.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-right">
+            <p class="m-0 text-white">Diseñado por el equipo <a class="font-weight-bold" href="#">NawiCrop</a></p>
+        </div>
+    </div>
+</div>
+<!-- Footer End -->
+
+
+ <!-- Back to Top -->
+    <a href="#" class="btn btn-primary px-3 back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+
+    <!-- JavaScript Libraries -->
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='lib/easing/easing.min.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/waypoints/waypoints.min.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/owlcarousel/owl.carousel.min.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/tempusdominus/js/moment.min.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/tempusdominus/js/moment-timezone.min.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+
+<!-- Contact Javascript File -->
+<script src="{{ url_for('static', filename='mail/jqBootstrapValidation.min.js') }}"></script>
+<script src="{{ url_for('static', filename='mail/contact.js') }}"></script>
+
+<!-- Template Javascript -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+
+</html>

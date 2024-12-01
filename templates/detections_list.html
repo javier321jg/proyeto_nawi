@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Detecciones{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<style>
+    .detection-card {
+        transition: transform 0.2s;
+        margin-bottom: 20px;
+    }
+    .detection-card:hover {
+        transform: translateY(-5px);
+    }
+    .detection-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px 8px 0 0;
+    }
+    .disease-tag {
+        margin: 2px;
+        display: inline-block;
+    }
+    .timestamp {
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Detecciones Realizadas</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                        <li class="breadcrumb-item active">Image Detection Results</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                {% for detection in detections %}
+                <div class="col-md-4">
+                    <div class="card detection-card">
+                        <img src="/detect/{{ detection.image_path }}" class="detection-image" alt="Detección">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0">Detección #{{ detection.id }}</h5>
+                                <span class="badge {% if detection.has_diseases %}badge-warning{% else %}badge-success{% endif %}">
+                                    {% if detection.has_diseases %}Con Enfermedades{% else %}Sano{% endif %}
+                                </span>
+                            </div>
+                            <p class="timestamp">
+                                <i class="fas fa-calendar-alt"></i>
+                                {{ detection.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-microscope"></i>
+                                Total detecciones: {{ detection.total_detections }}
+                            </p>
+                            
+                            {% if detection.diseases_list %}
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Enfermedades detectadas:</strong></p>
+                                {% for disease in detection.diseases_list %}
+                                <span class="badge badge-info disease-tag">{{ disease }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('detection_detail', detection_id=detection.id) }}" class="btn btn-primary btn-block">
+                                <i class="fas fa-search"></i> Ver Detalles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if not detections %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h5><i class="icon fas fa-info"></i> No hay detecciones</h5>
+                        No se han realizado detecciones aún. Comienza analizando una imagen en la página principal.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/assets/js/adminlte.min.js"></script>
+{% endblock javascripts %}

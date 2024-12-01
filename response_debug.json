@@ -1,0 +1,12 @@
+{
+  "candidates": [
+    {
+      "finishReason": "BLOCKLIST"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 53,
+    "totalTokenCount": 53
+  },
+  "modelVersion": "gemini-1.5-flash-002"
+}

@@ -1,0 +1,26 @@
+# Ignorar carpetas del sistema
+AppData/
+Desktop/
+Documents/
+Downloads/
+OneDrive/
+*.exe
+*.zip
+*.rar
+*.msi
+
+# Ignorar configuraciones locales y entornos
+.conda/
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.pt
+venv/
+
+# Ignorar salidas de detección
+uploads/
+runs/
+output/

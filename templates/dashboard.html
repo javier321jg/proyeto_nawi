@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/jqvmap/jqvmap.min.css">
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/daterangepicker/daterangepicker.css">
+<link rel="stylesheet" href="/static/assets/plugins/summernote/summernote-bs4.min.css">
+
+<style>
+  .stats-card {
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+  }
+  .stats-card:hover { transform: translateY(-5px); }
+  .chart-card {
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block body_class %}sidebar-mini{% endblock body_class %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Dashboard de Detección</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Info Boxes -->
+            <div class="row">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info stats-card">
+                        <div class="inner">
+                            <h3 id="totalAnalysis">0</h3>
+                            <p>Total Análisis</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-microscope"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success stats-card">
+                        <div class="inner">
+                            <h3 id="healthyPlants">0</h3>
+                            <p>Plantas Sanas</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning stats-card">
+                        <div class="inner">
+                            <h3 id="affectedPlants">0</h3>
+                            <p>Plantas Afectadas</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger stats-card">
+                        <div class="inner">
+                            <h3 id="totalDiseases">0</h3>
+                            <p>Total Enfermedades</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-line mr-2"></i>Historial de Detecciones
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="detectionsChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-pie mr-2"></i>Distribución de Enfermedades
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="diseasesChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Detections Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-list mr-2"></i>Últimas Detecciones por Usuario
+                            </h3>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Fecha</th>
+                                        <th>Total Detecciones</th>
+                                        <th>Estado</th>
+                                        <th>Enfermedades</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detectionsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disease Details Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-viruses mr-2"></i>Detalle de Enfermedades
+                            </h3>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Enfermedad</th>
+                                        <th>Usuario</th>
+                                        <th>Total</th>
+                                        <th>Confianza Promedio</th>
+                                        <th>Última Detección</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="diseasesTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/assets/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+async function updateDashboard() {
+    try {
+        const [generalStats, diseaseStats, history] = await Promise.all([
+            fetch('/api/stats/general').then(r => r.json()),
+            fetch('/api/stats/diseases').then(r => r.json()),
+            fetch('/api/detections/history').then(r => r.json())
+        ]);
+
+        // Actualizar estadísticas generales
+        document.getElementById('totalAnalysis').textContent = generalStats.total_detections;
+        document.getElementById('healthyPlants').textContent = generalStats.healthy_plants;
+        document.getElementById('affectedPlants').textContent = generalStats.affected_plants;
+        document.getElementById('totalDiseases').textContent = generalStats.total_diseases;
+
+        // Tabla de detecciones por usuario
+        const detectionsBody = document.getElementById('detectionsTableBody');
+        detectionsBody.innerHTML = history.map(detection => {
+            // Obtener las enfermedades asociadas a esta detección
+            const diseases = detection.diseases || [];
+            const diseasesText = diseases.length > 0 ? diseases.join(', ') : 'Ninguna';
+            
+            return `
+                <tr>
+                    <td>
+                        <img src="/static/assets/person.png" class="img-circle mr-2" alt="User Image" style="width: 30px">
+                        ${detection.username || 'Usuario'}
+                    </td>
+                    <td>${new Date(detection.date).toLocaleString()}</td>
+                    <td>${detection.total}</td>
+                    <td>
+                        <span class="badge badge-${detection.has_diseases ? 'warning' : 'success'}">
+                            ${detection.has_diseases ? 'Con Enfermedades' : 'Sano'}
+                        </span>
+                    </td>
+                    <td>${diseasesText}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // Tabla de enfermedades
+        const diseasesBody = document.getElementById('diseasesTableBody');
+        diseasesBody.innerHTML = Object.entries(diseaseStats).map(([name, data]) => `
+            <tr>
+                <td>${name}</td>
+                <td>
+                    <img src="/static/assets/person.png" class="img-circle mr-2" alt="User Image" style="width: 30px">
+                    ${data.username || 'Usuario'}
+                </td>
+                <td><span class="badge badge-primary">${data.total}</span></td>
+                <td><span class="badge badge-info">${(data.avg_confidence * 100).toFixed(1)}%</span></td>
+                <td>${new Date(data.detections[data.detections.length - 1].date).toLocaleString()}</td>
+            </tr>
+        `).join('');
+
+        // Gráficos
+        updateCharts(history, diseaseStats);
+    } catch (error) {
+        console.error('Error actualizando dashboard:', error);
+    }
+}
+
+function updateCharts(history, diseaseStats) {
+    // Gráfico de detecciones
+    new Chart(document.getElementById('detectionsChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: history.map(h => new Date(h.date).toLocaleDateString()),
+            datasets: [{
+                label: 'Detecciones',
+                data: history.map(h => h.total),
+                borderColor: '#17a2b8',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de enfermedades
+    new Chart(document.getElementById('diseasesChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(diseaseStats),
+            datasets: [{
+                data: Object.values(diseaseStats).map(d => d.total),
+                backgroundColor: [
+                    '#17a2b8',
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545',
+                    '#6c757d',
+                    '#007bff'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+}
+
+// Inicializar dashboard y actualizar cada 30 segundos
+document.addEventListener('DOMContentLoaded', () => {
+    updateDashboard();
+    setInterval(updateDashboard, 30000);
+});
+</script>
+{% endblock javascripts %}

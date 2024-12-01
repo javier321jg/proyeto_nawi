@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de Usuario{% endblock %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block body_class %}sidebar-mini{% endblock body_class %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Perfil de Usuario</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                        <li class="breadcrumb-item active">Perfil</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-3">
+                    <!-- Profile Image -->
+                    <div class="card card-primary card-outline">
+                        <div class="card-body box-profile">
+                            <div class="text-center">
+                                <img class="profile-user-img img-fluid img-circle"
+                                     src="/static/assets/person.png"
+                                     alt="User profile picture">
+                            </div>
+                            <h3 class="profile-username text-center">{{ user.username }}</h3>
+                            <p class="text-muted text-center">{{ user.email }}</p>
+                            <ul class="list-group list-group-unbordered mb-3">
+                                <li class="list-group-item">
+                                    <b>Detecciones Totales</b> <a class="float-right">{{ total_detections }}</a>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Enfermedades Detectadas</b> <a class="float-right">{{ total_diseases }}</a>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Miembro desde</b> <a class="float-right">{{ user.created_at.strftime('%d/%m/%Y') }}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-9">
+                    <div class="card">
+                        <div class="card-header p-2">
+                            <ul class="nav nav-pills">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#activity" data-toggle="tab">Actividad Reciente</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#settings" data-toggle="tab">Configuración</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <!-- Activity Tab -->
+                                <div class="active tab-pane" id="activity">
+                                    {% if recent_detections %}
+                                        {% for detection in recent_detections %}
+                                        <div class="post">
+                                            <div class="user-block">
+                                                <img class="img-circle img-bordered-sm" src="/static/assets/person.png" alt="user image">
+                                                <span class="username">
+                                                    <a href="#">{{ user.username }}</a>
+                                                </span>
+                                                <span class="description">Detección realizada - {{ detection.timestamp.strftime('%d/%m/%Y %H:%M') }}</span>
+                                            </div>
+                                            <p>
+                                                Realizó una detección con {{ detection.total_detections }} resultados.
+                                                {% if detection.has_diseases %}
+                                                <span class="text-danger">Se encontraron enfermedades.</span>
+                                                {% else %}
+                                                <span class="text-success">No se encontraron enfermedades.</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">No hay actividad reciente para mostrar.</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Settings Tab -->
+                                <div class="tab-pane" id="settings">
+                                    <form class="form-horizontal" method="POST" action="{{ url_for('update_profile') }}">
+                                        <div class="form-group row">
+                                            <label for="inputName" class="col-sm-2 col-form-label">Nombre</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" class="form-control" id="inputName" name="username" value="{{ user.username }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
+                                            <div class="col-sm-10">
+                                                <input type="email" class="form-control" id="inputEmail" name="email" value="{{ user.email }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label for="inputPassword" class="col-sm-2 col-form-label">Nueva Contraseña</label>
+                                            <div class="col-sm-10">
+                                                <input type="password" class="form-control" id="inputPassword" name="password" placeholder="Dejar en blanco para mantener la actual">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="offset-sm-2 col-sm-10">
+                                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+{% endblock javascripts %}

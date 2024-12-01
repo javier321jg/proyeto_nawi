@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Detección</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        header img {
+            max-width: 200px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .detection-section {
+            margin-bottom: 30px;
+        }
+        .disease-details {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .disease-details h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #555;
+        }
+        .metadata {
+            font-size: 14px;
+            color: #555;
+        }
+        .recommendations-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .recommendations-list li {
+            margin-bottom: 5px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 40px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="{{ logo_url }}" alt="Logo NawiCrop IA">
+        <h1>Reporte de Detección</h1>
+    </header>
+    <section class="detection-section">
+        <p><strong>Usuario:</strong> {{ detection.username }}</p>
+        <p><strong>Fecha:</strong> {{ detection.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+        <p><strong>Estado:</strong> {% if detection.has_diseases %}Con Enfermedades{% else %}Sano{% endif %}</p>
+    </section>
+    <section class="diseases-section">
+        <h2>Enfermedades Detectadas</h2>
+        {% for disease in diseases %}
+            <div class="disease-details">
+                <h3>{{ disease.class }}</h3>
+                <p><strong>Confianza:</strong> {{ "%.1f"|format(disease.confidence * 100) }}%</p>
+                {% if disease.disease_info %}
+                    <p><strong>Descripción:</strong> {{ disease.disease_info.short_description }}</p>
+                    <p><strong>Causa:</strong> {{ disease.disease_info.cause }}</p>
+                    <p><strong>Efectos:</strong> {{ disease.disease_info.effects }}</p>
+                    <p><strong>Recomendaciones:</strong></p>
+                    <ul class="recommendations-list">
+                        {% for line in disease.disease_info.recommendations.split('\n') %}
+                            <li>{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><strong>Fuente:</strong> <a href="{{ disease.disease_info.source }}">{{ disease.disease_info.source }}</a></p>
+                {% else %}
+                    <p>No hay información detallada disponible para esta enfermedad.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </section>
+    <footer class="footer">
+        Generado por NawiCrop IA
+    </footer>
+</body>
+</html>

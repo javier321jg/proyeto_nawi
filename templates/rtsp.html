@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detección RTSP - ÑawiCrop AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+    
+    <style>
+        .rtsp-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .rtsp-feed {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .stats-container {
+            background: rgba(0,0,0,0.8);
+            border-radius: 8px;
+            padding: 1rem;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: white;
+        }
+        
+        .detection-card {
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.3s forwards;
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .connection-status {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 100;
+        }
+        
+        .connection-status.connected {
+            background-color: #28a745;
+        }
+        
+        .connection-status.disconnected {
+            background-color: #dc3545;
+        }
+        
+        .connection-status.connecting {
+            background-color: #ffc107;
+        }
+        
+        .controls-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .url-input {
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body class="sidebar-mini">
+    {% include 'navigation.html' %}
+    {% include 'sidebar.html' %}
+
+    <div class="content-wrapper">
+        <section class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1>Detección RTSP en Tiempo Real</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                            <li class="breadcrumb-item active">Cámara RTSP</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-video mr-2"></i>Feed RTSP
+                                </h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- RTSP URL Input -->
+                                <div class="form-group">
+                                    <label>URL de la Cámara RTSP</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control url-input" id="rtspUrl" 
+                                               placeholder="rtsp://usuario:contraseña@ip:puerto/stream">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                    onclick="saveRtspUrl()">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Ejemplo: rtsp://192.168.1.100:554/stream1
+                                    </small>
+                                </div>
+
+                                <div class="rtsp-container">
+                                    <div id="connectionStatus" class="connection-status disconnected">
+                                        Desconectado
+                                    </div>
+                                    <video id="rtspStream" class="rtsp-feed" autoplay playsinline></video>
+                                    <canvas id="detectionOverlay" class="detection-overlay"></canvas>
+                                    <div class="stats-container">
+                                        <div id="fps">FPS: 0</div>
+                                        <div id="detections">Detecciones: 0</div>
+                                        <div id="bandwidth">Ancho de banda: 0 KB/s</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="controls-panel mt-3">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <button id="connectButton" class="btn btn-primary btn-block">
+                                                <i class="fas fa-plug mr-2"></i>Conectar
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button id="startButton" class="btn btn-success btn-block" disabled>
+                                                <i class="fas fa-play mr-2"></i>Iniciar Detección
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button id="stopButton" class="btn btn-danger btn-block" disabled>
+                                                <i class="fas fa-stop mr-2"></i>Detener
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-chart-bar mr-2"></i>Detecciones en Vivo
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="detectionsList" class="overflow-auto" style="max-height: 400px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-cog mr-2"></i>Configuración
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>Umbral de Confianza</label>
+                                    <input type="range" class="custom-range" id="confidenceThreshold" 
+                                           min="0" max="100" value="50">
+                                    <small class="form-text text-muted">
+                                        Ajusta el nivel mínimo de confianza para las detecciones
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Calidad de Video</label>
+                                    <select class="form-control" id="videoQuality">
+                                        <option value="high">Alta (1080p)</option>
+                                        <option value="medium" selected>Media (720p)</option>
+                                        <option value="low">Baja (480p)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="autoReconnect" checked>
+                                        <label class="custom-control-label" for="autoReconnect">
+                                            Reconexión Automática
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="autoSave">
+                                        <label class="custom-control-label" for="autoSave">
+                                            Guardar Detecciones Automáticamente
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    {% include 'footer.html' %}
+
+    <!-- Scripts -->
+    <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+    <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/assets/js/adminlte.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    
+    <script>
+        let rtspStream;
+        let model;
+        let isRunning = false;
+        let isConnected = false;
+        let lastDetectionTime = Date.now();
+        let reconnectAttempts = 0;
+        let sessionId = null;
+        
+        // Cargar la última URL guardada
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem('rtspUrl');
+            if (savedUrl) {
+                document.getElementById('rtspUrl').value = savedUrl;
+            }
+        });
+        
+        function saveRtspUrl() {
+            const url = document.getElementById('rtspUrl').value;
+            localStorage.setItem('rtspUrl', url);
+            alert('URL guardada correctamente');
+        }
+        
+        async function connectToStream() {
+            const url = document.getElementById('rtspUrl').value;
+            if (!url) {
+                alert('Por favor ingrese una URL RTSP válida');
+                return;
+            }
+            
+            updateConnectionStatus('connecting');
+            
+            try {
+                const response = await fetch('/api/webcam/start_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'rtsp',
+                        url: url
+                    })
+                });
+                
+                const data = await response.json();
+                sessionId = data.session_id;
+                
+                // Aquí iría la lógica de conexión al stream RTSP
+                // Esto dependerá de la implementación específica del servidor
+                
+                updateConnectionStatus('connected');
+                document.getElementById('startButton').disabled = false;
+                isConnected = true;
+                
+            } catch (error) {
+                console.error('Error connecting to RTSP stream:', error);
+                updateConnectionStatus('disconnected');
+                
+                if (document.getElementById('autoReconnect').checked && reconnectAttempts < 3) {
+                    reconnectAttempts++;
+                    setTimeout(connectToStream, 5000);
+                }
+            }
+        }
+        
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = 'connection-status ' + status;
+            
+            switch(status) {
+                case 'connected':
+                    statusElement.textContent = 'Conectado';
+                    break;
+                case 'disconnected':
+                    statusElement.textContent = 'Desconectado';
+                    break;
+                case 'connecting':
+                    statusElement.textContent = 'Conectando...';
+                    break;
+            }
+        }
+        
+        async function loadModel() {
+            try {
+                model = await tf.loadGraphModel('/static/model/model.json');
+                console.log('Modelo cargado exitosamente');
+            } catch (error) {
+                console.error('Error al cargar el modelo:', error);
+            }
+        }
+        
+        async function startDetection() {
+            if (!model) await loadModel();
+            if (!isConnected) return;
+            
+            isRunning = true;
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('stopButton').disabled = false;
+            
+            async function detect() {
+                if (!isRunning || !isConnected) return;
+                
+                const now = Date.now();
+                const fps = Math.round(1000 / (now - lastDetectionTime));
+                document.getElementById('fps').textContent = `FPS: ${fps}`;
+                lastDetectionTime = now;
+                
+                try {
+                    tf.engine().startScope();
+                    const videoFrame = tf.browser.fromPixels(document.getElementById('rtspStream'));
+                    const predictions = await model.executeAsync(videoFrame);
+                    
+                    updateDetections(predictions);
+                    
+                    tf.engine().endScope();
+                    requestAnimationFrame(detect);
+                } catch (error) {
+                    console.error('Error during detection:', error);
+                    stopDetection();
+                }
+            }
+            
+            detect();
+        }
+        
+        function stopDetection() {
+            isRunning = false;
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('stopButton').disabled = true;
+            
+            if (sessionId) {
+                fetch('/api/webcam/end_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId
+                    })
+                });
+            }
+        }
+        
+        function updateDetections(predictions) {
+            const detectionsList = document.getElementById('detectionsList');
+            const threshold = document.getElementById('confidenceThreshold').value / 100;
+            
+            // Procesar predicciones y mostrar en la UI
+            // Esta función será similar a la del webcam.html pero adaptada para RTSP
+        }
+        
+        // Event Listeners
+        document.getElementById('connectButton').onclick = connectToStream;
+        document.getElementById('startButton').onclick = startDetection;
+        document.getElementById('stopButton').onclick = stopDetection;
+        
+        // Cleanup al cerrar la página
+        window.onbeforeunload = () => {
+            if (isConnected) {
+                stopDetection();
+            }
+        };
+    </script>
+</body>
+</html>
