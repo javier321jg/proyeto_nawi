@@ -122,6 +122,8 @@ tzdata==2023.3
 tzlocal==5.2
 ultralytics==8.3.31
 ultralytics-thop==2.0.11
+ultralytics
+opencv-python-headless
 uritools==4.0.3
 urllib3==1.26.16
 webencodings==0.5.1
