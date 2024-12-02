@@ -1,17 +1,20 @@
-# Especifica la imagen base de Python con la versión deseada
-FROM python:3.10.12
+# Usar una imagen base de Python
+FROM python:3.10-slim
 
-# Establece el directorio de trabajo dentro del contenedor
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copia los archivos de la aplicación al contenedor
+# Instalar las dependencias del sistema necesarias
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copiar los archivos de la aplicación al contenedor
 COPY . .
 
-# Instala las dependencias listadas en requirements.txt
+# Instalar las dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expone el puerto en el que la aplicación correrá
-EXPOSE 8000
-
-# Define el comando por defecto para ejecutar la aplicación
+# Comando para ejecutar la aplicación
 CMD ["python", "webapp.py"]
+
