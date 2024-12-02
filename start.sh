@@ -1,10 +1,9 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 # Actualizar pip a la última versión
 pip install --upgrade pip
-
-# Instalar dependencias
+# Instalar las dependencias del proyecto
 pip install -r requirements.txt
-
 # Iniciar la aplicación
-python app.py
+# Reemplaza 'app.py' por el nombre de tu archivo principal
+python webapp.py
+
