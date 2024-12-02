@@ -1097,8 +1097,6 @@ if __name__ == "__main__":
         db.create_all()
         load_model()  # Cargar el modelo al iniciar
     
-    parser = argparse.ArgumentParser(description="Flask app exposing YOLOv8 models")
-    parser.add_argument("--port", default=5000, type=int, help="port number")
-    args = parser.parse_args()
-    
-    app.run(host="0.0.0.0", port=args.port, debug=True)
+    # Ajusta el puerto dinámico para Render
+    port = int(os.environ.get("PORT", 5000))  # Usa el puerto asignado por Render o 5000 por defecto
+    app.run(host="0.0.0.0", port=port, debug=True)
