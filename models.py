@@ -10,7 +10,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Campos adicionales para configuraciones del usuario
+    # Campos de configuración del usuario
     theme = db.Column(db.String(20), default='light')
     font_size = db.Column(db.String(20), default='medium')
     email_notifications = db.Column(db.Boolean, default=False)
@@ -31,18 +31,22 @@ class User(db.Model):
 
 class Detection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    image_path = db.Column(db.String(200), nullable=False)
+    # URLs de Cloudinary
+    image_original_url = db.Column(db.String(500))  # URL de la imagen original
+    image_processed_url = db.Column(db.String(500))  # URL de la imagen con detecciones
+    image_path = db.Column(db.String(200))  # Mantener para compatibilidad
+    cloudinary_public_id = db.Column(db.String(200))  # ID público en Cloudinary
+    
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     total_detections = db.Column(db.Integer, default=0)
     has_diseases = db.Column(db.Boolean, default=False)
-    diseases_detected = db.Column(db.String(500))  # Lista separada por comas de enfermedades detectadas
+    diseases_detected = db.Column(db.String(500))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    # Relación con las detecciones de enfermedades específicas
     disease_detections = db.relationship('DiseaseDetection', backref='detection', lazy=True)
 
     def __repr__(self):
-        return f'<Detection {self.image_path}>'
+        return f'<Detection {self.id}>'
 
 class DiseaseDetection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,7 +61,7 @@ class DiseaseDetection(db.Model):
 
 class WebcamDetection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    stream_type = db.Column(db.String(20), nullable=False)  # 'webcam' o 'rtsp'
+    stream_type = db.Column(db.String(20), nullable=False)
     start_time = db.Column(db.DateTime, default=datetime.utcnow)
     end_time = db.Column(db.DateTime)
     total_frames = db.Column(db.Integer, default=0)
@@ -65,7 +69,6 @@ class WebcamDetection(db.Model):
     average_confidence = db.Column(db.Float, default=0.0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-    # Relación con las detecciones individuales por cuadro
     frame_detections = db.relationship('WebcamFrameDetection', backref='session', lazy=True)
 
     def __repr__(self):
@@ -78,7 +81,13 @@ class WebcamFrameDetection(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     disease_name = db.Column(db.String(100))
     confidence = db.Column(db.Float)
-    frame_path = db.Column(db.String(200))  # Para guardar frames relevantes con detecciones
+    
+    # URLs de Cloudinary para frames
+    frame_original_url = db.Column(db.String(500))  # URL del frame original
+    frame_processed_url = db.Column(db.String(500))  # URL del frame procesado
+    frame_path = db.Column(db.String(200))  # Mantener para compatibilidad
+    cloudinary_public_id = db.Column(db.String(200))  # ID público en Cloudinary
+    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
@@ -93,7 +102,7 @@ class DiseaseDescription(db.Model):
     cause = db.Column(db.Text, nullable=False)
     effects = db.Column(db.Text, nullable=False)
     source = db.Column(db.String(255))
-    recommendations = db.Column(db.Text)  # Nueva columna
+    recommendations = db.Column(db.Text)
 
     def __repr__(self):
         return f'<Disease {self.name}>'

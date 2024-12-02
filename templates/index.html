@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Detección de Enfermedades</title>
-  
+
   <!-- CSS -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <link rel="stylesheet" href="/static/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
@@ -18,6 +20,33 @@
   <link rel="stylesheet" href="/static/assets/plugins/summernote/summernote-bs4.min.css">
 
   <style>
+    .detection-image {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .detection-image:hover {
+      transform: scale(1.02);
+    }
+
+    .card {
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .col-md-6 {
+        margin-bottom: 20px;
+      }
+    }
+
     .content-wrapper {
       min-height: 100vh;
       background: #f4f6f9;
@@ -39,7 +68,7 @@
       flex: 1;
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
 
     .custom-file-upload {
@@ -54,7 +83,7 @@
     }
 
     .custom-file-upload:hover {
-      background: rgba(0,123,255,0.1);
+      background: rgba(0, 123, 255, 0.1);
       transform: translateY(-2px);
     }
 
@@ -77,7 +106,7 @@
       background: #fff;
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
       height: 400px;
     }
 
@@ -171,8 +200,8 @@
             <div class="card-body">
               <form method="post" enctype="multipart/form-data" id="uploadForm">
                 <div class="custom-file-upload">
-                  <input type="file" name="file" id="fileInput" style="display: none;" 
-                         accept=".jpg,.jpeg,.png" required onchange="showFileName(this)">
+                  <input type="file" name="file" id="fileInput" style="display: none;" accept=".jpg,.jpeg,.png" required
+                    onchange="showFileName(this)">
                   <label for="fileInput">
                     <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
                     <br>
@@ -210,10 +239,37 @@
               </div>
               {% endif %}
 
-              {% if image_path %}
-              <div class="text-center">
-                <img src="{{ url_for('detect', filename=image_path) }}?t={{ timestamp }}"
-                     class="detection-image" alt="Resultado del análisis">
+              {% if original_url or processed_url %}
+              <div class="row">
+                <!-- Imagen Original -->
+                {% if original_url %}
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Imagen Original</h5>
+                    </div>
+                    <div class="card-body">
+                      <img src="{{ original_url }}" class="detection-image" alt="Imagen Original"
+                        style="width: 100%; height: auto;">
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Imagen Procesada -->
+                {% if processed_url %}
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Imagen Procesada</h5>
+                    </div>
+                    <div class="card-body">
+                      <img src="{{ processed_url }}" class="detection-image" alt="Imagen Procesada"
+                        style="width: 100%; height: auto;">
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
               </div>
 
               <div id="resultsContainer">
@@ -227,22 +283,21 @@
               {% endif %}
             </div>
           </div>
-        </div>
 
-        {% if image_path %}
-        <!-- Charts Section -->
-        <div class="chart-section">
-          <div class="chart-card">
-            <h4>Distribución de Detecciones</h4>
-            <canvas id="distributionChart"></canvas>
+          {% if image_path %}
+          <!-- Charts Section -->
+          <div class="chart-section">
+            <div class="chart-card">
+              <h4>Distribución de Detecciones</h4>
+              <canvas id="distributionChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h4>Niveles de Confianza</h4>
+              <canvas id="confidenceChart"></canvas>
+            </div>
           </div>
-          <div class="chart-card">
-            <h4>Niveles de Confianza</h4>
-            <canvas id="confidenceChart"></canvas>
-          </div>
+          {% endif %}
         </div>
-        {% endif %}
-      </div>
     </section>
   </div>
 
@@ -274,11 +329,11 @@
 
   {% if image_path %}
   <script src="/static/assets/js/detections.js?t={{ timestamp }}"></script>
-  
+
   <script>
     // Log para verificar carga de detections.js
     console.log("Archivo detections.js cargado");
-    
+
     // Verificar si detections está definido
     if (typeof detections === 'undefined') {
       console.error("Error: Variable detections no definida");
@@ -286,25 +341,25 @@
       console.log("Detections cargado correctamente:", detections);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       console.log("DOM Loaded - Iniciando procesamiento");
-      
+
       const resultsContainer = document.getElementById('resultsContainer');
       if (!resultsContainer) {
         console.error("Error: No se encontró el contenedor de resultados");
         return;
       }
-      
+
       if (typeof detections !== 'undefined') {
         console.log("Procesando detecciones:", detections);
-        
+
         let html = '';
-        
+
         // Procesar detecciones
         const processedData = detections.reduce((acc, det) => {
           console.log("Procesando detección:", det);
           console.log("Información de enfermedad:", det.disease_info);
-          
+
           if (!acc[det.class]) {
             acc[det.class] = {
               count: 0,
@@ -324,9 +379,9 @@
         // Generar tarjetas de detección
         Object.entries(processedData).forEach(([className, data], index) => {
           console.log(`Generando tarjeta para ${className}:`, data);
-          
+
           const avgConfidence = data.confidence.reduce((a, b) => a + b, 0) / data.confidence.length;
-          
+
           html += `
             <div class="disease-card" style="animation-delay: ${index * 0.2}s">
               <div class="card mb-3">
@@ -389,7 +444,8 @@
           createCharts(processedData);
         } catch (error) {
           console.error("Error al crear gráficos:", error);
-        }} else {
+        }
+      } else {
         console.log("No hay detecciones para procesar");
         resultsContainer.innerHTML = `
           <div class="alert alert-info">
@@ -402,7 +458,7 @@
 
     function createCharts(data) {
       console.log("Creando gráficos con datos:", data);
-      
+
       try {
         // Gráfico de distribución
         if (document.getElementById('distributionChart')) {
@@ -463,7 +519,7 @@
               labels: Object.keys(data),
               datasets: [{
                 label: 'Confianza Promedio (%)',
-                data: Object.values(data).map(d => 
+                data: Object.values(data).map(d =>
                   (d.confidence.reduce((a, b) => a + b, 0) / d.confidence.length * 100).toFixed(1)
                 ),
                 backgroundColor: '#007bff',
@@ -501,7 +557,7 @@
                     font: {
                       size: 12
                     },
-                    callback: function(value) {
+                    callback: function (value) {
                       return value + '%';
                     }
                   }
@@ -522,7 +578,7 @@
         } else {
           console.error("No se encontró el elemento confidenceChart");
         }
-        
+
         console.log("Gráficos creados exitosamente");
       } catch (error) {
         console.error("Error al crear los gráficos:", error);
@@ -531,4 +587,5 @@
   </script>
   {% endif %}
 </body>
+
 </html>

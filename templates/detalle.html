@@ -13,14 +13,16 @@
         margin-bottom: 30px;
         flex-wrap: wrap;
     }
+
     .image-container {
         flex: 1;
         min-width: 300px;
         background: #f8f9fa;
         padding: 15px;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
     .detection-image {
         width: 100%;
         height: auto;
@@ -28,42 +30,45 @@
         object-fit: contain;
         border-radius: 4px;
     }
+
     .image-title {
         margin: 10px 0;
         font-weight: 600;
         color: #2c3e50;
     }
+
     .metadata {
         color: #6c757d;
         font-size: 0.9em;
         margin-top: 10px;
     }
+
     .disease-details {
         padding: 15px;
         background-color: #f8f9fa;
         border-radius: 4px;
     }
-    
+
     .disease-details .form-group {
         margin-bottom: 1.5rem;
     }
-    
+
     .disease-details label {
         font-weight: 600;
         color: #2c3e50;
         display: block;
         margin-bottom: 0.5rem;
     }
-    
+
     .disease-details p {
         margin-bottom: 0;
         line-height: 1.6;
     }
-    
+
     .card-info.card-outline {
         border-top: 3px solid #17a2b8;
     }
-    
+
     .disease-details small {
         display: block;
         margin-top: 1rem;
@@ -140,6 +145,7 @@
             </div>
 
             <!-- Images Section -->
+            <!-- Reemplazar la sección de imágenes -->
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
@@ -149,9 +155,17 @@
                             </h3>
                         </div>
                         <div class="card-body">
-                            <img src="/uploads/{{ detection.image_path }}" alt="Imagen Original" class="detection-image">
+                            {% if detection.image_original_url %}
+                            <img src="{{ detection.image_original_url }}" alt="Imagen Original" class="detection-image">
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Imagen original no disponible
+                            </div>
+                            {% endif %}
                             <div class="metadata mt-3">
-                                <p><i class="fas fa-calendar-alt mr-2"></i>Fecha: {{ detection.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+                                <p><i class="fas fa-calendar-alt mr-2"></i>Fecha: {{
+                                    detection.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</p>
                                 <p><i class="fas fa-user mr-2"></i>Usuario: {{ detection.username }}</p>
                             </div>
                         </div>
@@ -165,12 +179,21 @@
                             </h3>
                         </div>
                         <div class="card-body">
-                            <img src="/detect/{{ detection.image_path }}" alt="Detección" class="detection-image">
+                            {% if detection.image_processed_url %}
+                            <img src="{{ detection.image_processed_url }}" alt="Detección" class="detection-image">
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Imagen procesada no disponible
+                            </div>
+                            {% endif %}
                             <div class="metadata mt-3">
-                                <p><i class="fas fa-search mr-2"></i>Total detecciones: {{ detection.total_detections }}</p>
+                                <p><i class="fas fa-search mr-2"></i>Total detecciones: {{ detection.total_detections }}
+                                </p>
                                 <p>
-                                    <i class="fas fa-check-circle mr-2"></i>Estado: 
-                                    <span class="badge {% if detection.has_diseases %}badge-warning{% else %}badge-success{% endif %}">
+                                    <i class="fas fa-check-circle mr-2"></i>Estado:
+                                    <span
+                                        class="badge {% if detection.has_diseases %}badge-warning{% else %}badge-success{% endif %}">
                                         {% if detection.has_diseases %}Con Enfermedades{% else %}Sano{% endif %}
                                     </span>
                                 </p>
@@ -179,7 +202,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Diseases Details -->
             <div class="row">
                 <div class="col-12">
@@ -191,124 +213,124 @@
                         </div>
                         <div class="card-body">
                             {% if diseases %}
-                                <div class="table-responsive mb-4">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Enfermedad</th>
-                                                <th>Nivel de Confianza</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for disease in diseases %}
-                                            <tr>
-                                                <td>
-                                                    <i class="fas fa-bug text-warning mr-2"></i>
-                                                    {{ disease.class }}
-                                                </td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar bg-info" 
-                                                             role="progressbar" 
-                                                             style="width: {{ disease.confidence * 100 }}%;"
-                                                             aria-valuenow="{{ disease.confidence * 100 }}"
-                                                             aria-valuemin="0"
-                                                             aria-valuemax="100">
-                                                            {{ "%.1f"|format(disease.confidence * 100) }}%
-                                                        </div>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Enfermedad</th>
+                                            <th>Nivel de Confianza</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for disease in diseases %}
+                                        <tr>
+                                            <td>
+                                                <i class="fas fa-bug text-warning mr-2"></i>
+                                                {{ disease.class }}
+                                            </td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-info" role="progressbar"
+                                                        style="width: {{ disease.confidence * 100 }}%;"
+                                                        aria-valuenow="{{ disease.confidence * 100 }}" aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                        {{ "%.1f"|format(disease.confidence * 100) }}%
                                                     </div>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- Detailed Disease Information -->
-                                <div class="mt-4">
-                                    <h4 class="mb-3"><i class="fas fa-info-circle mr-2"></i>Información Detallada de Enfermedades</h4>
-                                    {% for disease in diseases %}
-                                        <div class="card card-info card-outline mb-3">
-                                            <div class="card-header">
-                                                <h3 class="card-title">
-                                                    <i class="fas fa-leaf mr-2"></i>{{ disease.class }}
-                                                </h3>
-                                                <div class="card-tools">
-                                                    <span class="badge badge-info confidence-badge">
-                                                        <i class="fas fa-chart-line mr-1"></i>
-                                                        Confianza: {{ "%.1f"|format(disease.confidence * 100) }}%
-                                                    </span>
                                                 </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Detailed Disease Information -->
+                            <div class="mt-4">
+                                <h4 class="mb-3"><i class="fas fa-info-circle mr-2"></i>Información Detallada de
+                                    Enfermedades</h4>
+                                {% for disease in diseases %}
+                                <div class="card card-info card-outline mb-3">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-leaf mr-2"></i>{{ disease.class }}
+                                        </h3>
+                                        <div class="card-tools">
+                                            <span class="badge badge-info confidence-badge">
+                                                <i class="fas fa-chart-line mr-1"></i>
+                                                Confianza: {{ "%.1f"|format(disease.confidence * 100) }}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if disease.disease_info %}
+                                        <div class="disease-details">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-file-medical disease-icon"></i>
+                                                    Descripción:
+                                                </label>
+                                                <p class="text-muted">{{ disease.disease_info.short_description }}</p>
                                             </div>
-                                            <div class="card-body">
-                                                {% if disease.disease_info %}
-                                                    <div class="disease-details">
-                                                        <div class="form-group">
-                                                            <label>
-                                                                <i class="fas fa-file-medical disease-icon"></i>
-                                                                Descripción:
-                                                            </label>
-                                                            <p class="text-muted">{{ disease.disease_info.short_description }}</p>
-                                                        </div>
-                                                        
-                                                        <div class="form-group">
-                                                            <label>
-                                                                <i class="fas fa-virus disease-icon"></i>
-                                                                Causa:
-                                                            </label>
-                                                            <p class="text-muted">{{ disease.disease_info.cause }}</p>
-                                                        </div>
-                                                        
-                                                        <div class="form-group">
-                                                            <label>
-                                                                <i class="fas fa-exclamation-triangle disease-icon"></i>
-                                                                Efectos:
-                                                            </label>
-                                                            <p class="text-muted">{{ disease.disease_info.effects }}</p>
-                                                        </div>
-                                                        
-                                                        <div class="form-group">
-                                                            <label>
-                                                                <i class="fas fa-clipboard-list disease-icon"></i>
-                                                                Recomendaciones:
-                                                            </label>
-                                                            {% if disease.disease_info.recommendations %}
-                                                                <ul class="recommendations-list">
-                                                                    {% for line in disease.disease_info.recommendations.split('\n') %}
-                                                                        {% if line.strip() %}
-                                                                            <li>
-                                                                                <i class="fas fa-check-circle text-success mr-2"></i>
-                                                                                {{ line.strip() }}
-                                                                            </li>
-                                                                        {% endif %}
-                                                                    {% endfor %}
-                                                                </ul>
-                                                            {% else %}
-                                                                <p class="text-muted">Consulte con un especialista para recomendaciones específicas.</p>
-                                                            {% endif %}
-                                                        </div>
-                                                        
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-external-link-alt mr-1"></i>
-                                                            <strong>Fuente:</strong> 
-                                                            <a href="#" class="source-link">{{ disease.disease_info.source }}</a>
-                                                        </small>
-                                                    </div>
+
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-virus disease-icon"></i>
+                                                    Causa:
+                                                </label>
+                                                <p class="text-muted">{{ disease.disease_info.cause }}</p>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-exclamation-triangle disease-icon"></i>
+                                                    Efectos:
+                                                </label>
+                                                <p class="text-muted">{{ disease.disease_info.effects }}</p>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-clipboard-list disease-icon"></i>
+                                                    Recomendaciones:
+                                                </label>
+                                                {% if disease.disease_info.recommendations %}
+                                                <ul class="recommendations-list">
+                                                    {% for line in disease.disease_info.recommendations.split('\n') %}
+                                                    {% if line.strip() %}
+                                                    <li>
+                                                        <i class="fas fa-check-circle text-success mr-2"></i>
+                                                        {{ line.strip() }}
+                                                    </li>
+                                                    {% endif %}
+                                                    {% endfor %}
+                                                </ul>
                                                 {% else %}
-                                                    <div class="alert alert-warning">
-                                                        <i class="fas fa-exclamation-circle mr-2"></i>
-                                                        No hay información detallada disponible para esta enfermedad.
-                                                    </div>
+                                                <p class="text-muted">Consulte con un especialista para recomendaciones
+                                                    específicas.</p>
                                                 {% endif %}
                                             </div>
+
+                                            <small class="text-muted">
+                                                <i class="fas fa-external-link-alt mr-1"></i>
+                                                <strong>Fuente:</strong>
+                                                <a href="#" class="source-link">{{ disease.disease_info.source }}</a>
+                                            </small>
                                         </div>
-                                    {% endfor %}
+                                        {% else %}
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-circle mr-2"></i>
+                                            No hay información detallada disponible para esta enfermedad.
+                                        </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
+                                {% endfor %}
+                            </div>
                             {% else %}
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle mr-2"></i>
-                                    No se detectaron enfermedades en esta imagen.
-                                </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                No se detectaron enfermedades en esta imagen.
+                            </div>
                             {% endif %}
                         </div>
                     </div>

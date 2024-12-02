@@ -57,7 +57,15 @@
                 {% for detection in detections %}
                 <div class="col-md-4">
                     <div class="card detection-card">
-                        <img src="/detect/{{ detection.image_path }}" class="detection-image" alt="Detección">
+                        {% if detection.image_processed_url %}
+                            <img src="{{ detection.image_processed_url }}" class="detection-image" alt="Detección">
+                        {% elif detection.image_original_url %}
+                            <img src="{{ detection.image_original_url }}" class="detection-image" alt="Detección">
+                        {% else %}
+                            <div class="detection-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h5 class="card-title mb-0">Detección #{{ detection.id }}</h5>

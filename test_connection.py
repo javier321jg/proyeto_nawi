@@ -1,36 +1,24 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+import pymysql
 
-app = Flask(__name__)
-
-# Configuración de la base de datos
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/fresas'  # Ajusta "root" y la contraseña si tienes una configurada
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-# Modelos
-class User(db.Model):
-    __tablename__ = 'users'
+try:
+    # Establecer la conexión usando los datos exactos de DBeaver
+    connection = pymysql.connect(
+        host='autorack.proxy.rlwy.net',
+        user='root',
+        password='DAcnRAsSqsdiVCpYmgydAIbsnpsTTeBN',
+        database='railway',
+        port=27853
+    )
     
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
-
-@app.route('/')
-def test_db_connection():
-    try:
-        # Intentar listar todos los usuarios como prueba
-        users = User.query.all()
-        if users:
-            return f"Conexión exitosa. Usuarios encontrados: {[user.username for user in users]}"
-        else:
-            return "Conexión exitosa. No se encontraron usuarios en la tabla."
-    except Exception as e:
-        return f"Error al conectar con la base de datos: {e}"
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    print("¡Conexión exitosa!")
+    
+    # Realizar una consulta simple
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1")
+        result = cursor.fetchone()
+        print("Resultado de prueba:", result)
+    
+    connection.close()
+    
+except Exception as e:
+    print(f"Error de conexión: {str(e)}")
