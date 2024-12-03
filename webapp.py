@@ -1092,11 +1092,7 @@ def internal_error(error):
 
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        load_model()  # Cargar el modelo al iniciar
-    
-    # Ajusta el puerto dinámico para Render
-    port = int(os.environ.get("PORT", 5000))  # Usa el puerto asignado por Render o 5000 por defecto
-    app.run(host="0.0.0.0", port=port, debug=True)
+# Inicializaciones que deben ejecutarse siempre
+with app.app_context():
+    db.create_all()
+    load_model()  # Cargar el modelo al iniciar
