@@ -19,6 +19,7 @@ from flask import render_template, request, redirect, url_for, flash, session, m
 from xhtml2pdf import pisa
 import io
 import base64
+from sqlalchemy import func
 from flask import abort
 import requests
 import tempfile
@@ -349,6 +350,22 @@ def predict_img():
             filepath = os.path.join(temp_dir, filename)
             file.save(filepath)
             
+            # Subir imagen original a Cloudinary
+            original_url = None
+            try:
+                timestamp = int(time.time())
+                original_upload_result = cloudinary.uploader.upload(
+                    filepath,
+                    public_id=f"original/uploads/{os.path.splitext(filename)[0]}_{timestamp}",
+                    folder="original/uploads",
+                    overwrite=True
+                )
+                original_url = original_upload_result['secure_url']
+                print(f"Imagen original subida a Cloudinary: {original_url}")
+            except Exception as e:
+                print(f"Error al subir imagen original: {str(e)}")
+                return render_template('index.html', error="Error al subir la imagen original")
+            
             # Convertir PNG a JPG si es necesario
             if filename.lower().endswith('.png'):
                 img = cv2.imread(filepath)
@@ -360,46 +377,16 @@ def predict_img():
                 filepath = jpg_path
                 filename = os.path.basename(filepath)
             
-            # Cargar modelo
+            # Cargar modelo si no está cargado
             global model
             if model is None:
-                try:
-                    print("Descargando modelo desde HuggingFace...")
-                    model_url = "https://huggingface.co/javier233455/fresas/resolve/main/modelo1.pt"
-                    model_path = os.path.join(tempfile.gettempdir(), 'modelo1.pt')
-                    
-                    if not os.path.exists(model_path):
-                        response = requests.get(model_url, stream=True)
-                        response.raise_for_status()
-                        with open(model_path, 'wb') as f:
-                            for chunk in response.iter_content(chunk_size=8192):
-                                if chunk:
-                                    f.write(chunk)
-                    model = YOLO(model_path)
-                except Exception as e:
-                    print(f"Error al cargar el modelo: {str(e)}")
-                    return render_template('index.html', error="Error al cargar el modelo de detección")
-            
-            # Subir imagen original a Cloudinary
-            timestamp = int(time.time())
-            try:
-                upload_result = cloudinary.uploader.upload(
-                    filepath,
-                    public_id=f"uploads/originals/{os.path.splitext(filename)[0]}_{timestamp}",
-                    folder="uploads/originals",
-                    overwrite=True
-                )
-                original_url = upload_result['secure_url']
-                original_public_id = upload_result['public_id']
-                print(f"Imagen original subida a Cloudinary: {original_url}")
-            except Exception as e:
-                print(f"Error al subir imagen original: {str(e)}")
-                return render_template('index.html', error="Error al subir la imagen original")
+                if not load_model():
+                    return render_template('index.html', error="Error al cargar el modelo")
             
             # Realizar predicción
             try:
                 results = model.predict(filepath, save=True)
-                print("Predicción realizada exitosamente")
+                print(f"Predicción realizada exitosamente: {results}")
             except Exception as e:
                 print(f"Error en predicción: {str(e)}")
                 return render_template('index.html', error="Error al procesar la imagen")
@@ -408,7 +395,6 @@ def predict_img():
             processed_url = None
             processed_public_id = None
             try:
-                # Encontrar la carpeta más reciente de predicciones
                 predict_dir = "runs/detect"
                 predict_folders = [d for d in os.listdir(predict_dir) if d.startswith('predict')]
                 if predict_folders:
@@ -416,91 +402,113 @@ def predict_img():
                     processed_path = os.path.join(predict_dir, latest_folder, filename)
                     
                     if os.path.exists(processed_path):
-                        # Subir imagen procesada a Cloudinary
-                        upload_result = cloudinary.uploader.upload(
+                        timestamp = int(time.time())
+                        processed_upload_result = cloudinary.uploader.upload(
                             processed_path,
                             public_id=f"processed/detections/{os.path.splitext(filename)[0]}_{timestamp}",
                             folder="processed/detections",
                             overwrite=True
                         )
-                        processed_url = upload_result['secure_url']
-                        processed_public_id = upload_result['public_id']
+                        processed_url = processed_upload_result['secure_url']
+                        processed_public_id = processed_upload_result['public_id']
                         print(f"Imagen procesada subida a Cloudinary: {processed_url}")
             except Exception as e:
                 print(f"Error al subir imagen procesada: {str(e)}")
+                return render_template('index.html', error="Error al subir la imagen procesada")
             
             # Procesar detecciones y guardar en BD
             try:
-                # Crear registro de detección
+                # Procesar resultados y crear detecciones_data
+                detections_data = []
+                diseases_detected = set()  # Usar set para evitar duplicados
+                
+                for result in results:
+                    for box in result.boxes:
+                        class_name = result.names[int(box.cls)].strip()
+                        confidence = float(box.conf)
+                        
+                        # Buscar información de la enfermedad
+                        disease_info = DiseaseDescription.query.filter(
+                            func.lower(DiseaseDescription.name) == func.lower(class_name)
+                        ).first()
+                        
+                        detection_info = {
+                            "class": class_name,
+                            "confidence": confidence
+                        }
+                        
+                        if disease_info:
+                            detection_info["disease_info"] = {
+                                "short_description": disease_info.short_description,
+                                "cause": disease_info.cause,
+                                "effects": disease_info.effects,
+                                "recommendations": disease_info.recommendations,
+                                "source": disease_info.source
+                            }
+                        
+                        detections_data.append(detection_info)
+                        
+                        if not "sana" in class_name.lower():
+                            diseases_detected.add(class_name)
+                
+                # Crear registro principal de detección
                 detection = Detection(
-                    image_original_url=original_url,
-                    image_processed_url=processed_url,
-                    cloudinary_public_id=original_public_id,
+                    image_original_url=original_url,  # URL de la imagen original
+                    image_processed_url=processed_url,  # URL de la imagen procesada
+                    cloudinary_public_id=processed_public_id,
+                    total_detections=len(detections_data),
+                    has_diseases=bool(diseases_detected),
+                    diseases_detected=','.join(diseases_detected),
                     user_id=session['user_id']
                 )
                 db.session.add(detection)
-                db.session.commit()
+                db.session.flush()  # Para obtener el ID antes del commit
                 
-                # Procesar detecciones individuales
-                detections_data = []
-                for result in results:
-                    for box in result.boxes:
-                        class_name = result.names[int(box.cls)]
-                        confidence = float(box.conf)
-                        
-                        # Crear registro de detección de enfermedad
-                        disease_detection = DiseaseDetection(
-                            detection_id=detection.id,
-                            disease_name=class_name,
-                            confidence=confidence,
-                            user_id=session['user_id']
-                        )
-                        db.session.add(disease_detection)
-                        
-                        detections_data.append({
-                            "class": class_name,
-                            "confidence": confidence
-                        })
+                # Guardar detecciones individuales
+                for det in detections_data:
+                    disease_detection = DiseaseDetection(
+                        detection_id=detection.id,
+                        disease_name=det["class"],
+                        confidence=det["confidence"],
+                        user_id=session['user_id']
+                    )
+                    db.session.add(disease_detection)
                 
-                detection.total_detections = len(detections_data)
-                detection.has_diseases = any(d["class"].lower() != "sana" for d in detections_data)
-                detection.diseases_detected = ",".join(set(d["class"] for d in detections_data))
                 db.session.commit()
+                print("Detecciones guardadas exitosamente en la BD")
+                
+                # Generar archivo JS con las detecciones
+                js_dir = os.path.join(app.root_path, JS_FOLDER)
+                os.makedirs(js_dir, exist_ok=True)
+                with open(os.path.join(js_dir, 'detections.js'), 'w', encoding='utf-8') as f:
+                    f.write(f'const detections = {json.dumps(detections_data, indent=2)};')
+                print("Archivo detections.js generado exitosamente")
                 
             except Exception as e:
                 db.session.rollback()
                 print(f"Error al guardar en BD: {str(e)}")
-                return render_template('index.html', error="Error al guardar detecciones")
+                return render_template('index.html', error=f"Error al guardar detecciones: {str(e)}")
             
             # Limpiar archivos temporales
             try:
                 os.remove(filepath)
                 shutil.rmtree(os.path.join("runs", "detect"), ignore_errors=True)
             except Exception as e:
-                print(f"Error limpiando archivos: {str(e)}")
+                print(f"Error limpiando archivos temporales: {str(e)}")
             
-            # Generar archivo JS
-            try:
-                js_dir = os.path.join(app.root_path, JS_FOLDER)
-                os.makedirs(js_dir, exist_ok=True)
-                with open(os.path.join(js_dir, 'detections.js'), 'w', encoding='utf-8') as f:
-                    f.write(f'const detections = {json.dumps(detections_data, indent=2)};')
-            except Exception as e:
-                print(f"Error generando JS: {str(e)}")
-            
+            # Renderizar template con resultados
             return render_template('index.html',
-                               original_url=original_url,
                                processed_url=processed_url,
                                detections=detections_data,
                                timestamp=datetime.now().timestamp(),
                                username=session.get('username'))
             
         except Exception as e:
-            print(f"Error general: {str(e)}")
+            print(f"Error general en procesamiento: {str(e)}")
             return render_template('index.html', error=f"Error en el procesamiento: {str(e)}")
-        
+    
+    # GET request
     return render_template('index.html', username=session.get('username'))
-
 # Nueva función para subir imágenes a Cloudinary
 
 def subir_imagen_a_cloudinary(filepath, folder_name="default"):
@@ -985,11 +993,27 @@ def process_frame():
 @app.route('/webcam_feed')
 @login_required
 def webcam_feed():
-    model = YOLO('Modelo1.pt')  # Verificar que el modelo existe
-    if not os.path.exists('Modelo1.pt'):
-        flash('Modelo no encontrado', 'error')
-        return redirect(url_for('predict_img'))
+    global model
+    if model is None:
+        if not load_model():
+            flash('Error al cargar el modelo', 'error')
+            return redirect(url_for('predict_img'))
     return render_template('webcam.html', username=session.get('username'))
+def download_model():
+    try:
+        url = "https://huggingface.co/javier233455/fresas/resolve/main/modelo1.pt"
+        model_path = os.path.join(tempfile.gettempdir(), 'Modelo1.pt')
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        
+        with open(model_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        return model_path
+    except Exception as e:
+        print(f"Error al descargar el modelo: {e}")
+        return None
 
 @app.route('/check_camera')
 @login_required

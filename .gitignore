@@ -17,7 +17,7 @@ __pycache__/
 *.pyc
 *.log
 *.tmp
-*.pt
+
 venv/
 
 # Ignorar salidas de detección
