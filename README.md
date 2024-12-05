@@ -2,10 +2,13 @@
 
 Nawicrop IA es una solución tecnológica que utiliza inteligencia artificial para brindar diagnósticos y recomendaciones agrícolas en tiempo real. Este proyecto se enfoca en la detección de enfermedades en cultivos de fresas, frijoles y tomates mediante el modelo de detección de objetos YOLOv8. Su objetivo principal es mejorar la productividad agrícola, reducir pérdidas y facilitar el acceso a herramientas avanzadas para agricultores en áreas rurales.
 
+Visítanos en: [www.nawicrop-ia.tech](http://www.nawicrop-ia.tech/)
+
 ## Características Principales
 - **Detección Inteligente:** Utiliza YOLOv8 para identificar enfermedades en cultivos de fresas, frijoles y tomates con alta precisión.  
 - **Recomendaciones Personalizadas:** Ofrece soluciones específicas para cada enfermedad detectada.  
 - **Acceso en Tiempo Real:** Compatible con plataformas web, móviles y WhatsApp para que los agricultores puedan enviar imágenes y recibir diagnósticos en cualquier momento.  
+- **Infraestructura en la Nube:** Toda la plataforma está desplegada en **Huawei Cloud**, aprovechando sus servicios de inteligencia artificial, almacenamiento y bases de datos para garantizar un rendimiento óptimo.  
 - **Sostenibilidad:** Promueve prácticas agrícolas eficientes mediante el uso de tecnología avanzada.
 
 ## Autores
